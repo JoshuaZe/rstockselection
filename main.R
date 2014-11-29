@@ -2,18 +2,19 @@ require(ggplot2)
 require(RSQLite)
 require(compiler)
 require(topsis)
+require(lubridate)
 source("StockSelectionProcess.R",encoding = "UTF-8")
 conn <- dbConnect(SQLite(), "F:/Stocks/STOCK20141115.db3")
 
 #dbListTables(conn)
 #head(stock_df<-dbReadTable(conn, "yahoo_600011_ss"))
 # 蜡烛图
-# Candle <- function(xxx,n){
-#   xxx <- tail(xxx,n)
-#   xxx$date <- as.Date(xxx$date)
-#   candle <- ggplot(xxx)+geom_errorbar(aes(x=date,ymax=high,ymin=low))+geom_rect(aes(xmin=date-43000, xmax=date+43000, ymax=ifelse(open>=close, open, close), ymin=ifelse(open>close, close, open), fill=ifelse(open>close,"gray80","black")), colour="black")+scale_fill_identity()+ylab("price")
-#   candle
-# }
+Candle <- function(xxx,n){
+   xxx <- tail(xxx,n)
+   xxx$date <- ymd(xxx$date) 
+   candle <- ggplot(xxx)+geom_errorbar(aes(x=date,ymax=high,ymin=low))+geom_rect(aes(xmin=date-43000, xmax=date+43000, ymax=ifelse(open>=close, open, close), ymin=ifelse(open>close, close, open), fill=ifelse(open>close,"gray80","black")), colour="black")+scale_fill_identity()+ylab("price")
+   candle
+}
 # xxx <- dbReadTable(conn,"yahoo_603333_ss")
 # Candle(xxx,200)
 evaluatorname <- "stockEvaluatedByDMI"
