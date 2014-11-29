@@ -16,6 +16,8 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
   stock_evaluation_df<-NULL
   for(i in 1:length(stock_table_array)){
     stock_df<-dbReadTable(conn, stock_table_array[i])
+    #change symbol to stock_table name
+    stock_df$symbol<-stock_table_array[i]
     # within period
     stock_df_withinperiod<-stock_df[which((as.Date(stock_df$date)>=stockSelector$start)&
                                    (as.Date(stock_df$date)<=stockSelector$end)),]
