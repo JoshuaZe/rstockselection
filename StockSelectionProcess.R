@@ -22,6 +22,8 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
     # Filter stock data
     stock_df_withinperiod<-stockDataFilter(stock_df_withinperiod)
     if(nrow(stock_df_withinperiod)<=1){next}
+    # stock Price Adjust
+    stock_df_withinperiod<-stockPriceAdjust(stock_df_withinperiod)
     # stock evaluator
     stock_evaluation_list<-stockSelector$stockEvaluator(stock_df_withinperiod)
     stock_evaluation_df<-rbind(stock_evaluation_df,as.data.frame(stock_evaluation_list,stringsAsFactors = F))
@@ -39,6 +41,15 @@ stockDataFilter<-function(stock_df_withinperiod){
   if(length(which(stock_df_withinperiod$vol==0))!=0){
     stock_df_withinperiod<-stock_df_withinperiod[max(which(stock_df_withinperiod$vol==0)):nrow(stock_df_withinperiod),]
   }
+  return(stock_df_withinperiod)
+}
+# stock data filtering
+stockPriceAdjust<-function(stock_df_withinperiod){
+  k_adj<-stock_df_withinperiod$adjClose/stock_df_withinperiod$close
+  stock_df_withinperiod$open<-stock_df_withinperiod$open*k_adj
+  stock_df_withinperiod$high<-stock_df_withinperiod$high*k_adj
+  stock_df_withinperiod$low<-stock_df_withinperiod$low*k_adj
+  stock_df_withinperiod$close<-stock_df_withinperiod$close*k_adj
   return(stock_df_withinperiod)
 }
 # cmpfun

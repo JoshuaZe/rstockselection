@@ -77,7 +77,7 @@ stockSortedByDMITOPSIS<-function(stock_evaluation_df){
   return(stock_evaluation_df_sorted)
 }
 #####
-# Evaluator: 
+# Evaluator: stockEvaluatedByTXS
 # Special Sorter-Preference Order: 
 # suggest dayperiod = 15
 # 前五日
