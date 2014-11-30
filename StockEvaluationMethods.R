@@ -9,7 +9,7 @@
 stockEvaluatedByDMI<-function(stock_df){
   # Filter stock data
   stock_df<-stockDataFilter(stock_df)
-  if(nrow(stock_df)<=5){return(NULL)}
+  if(nrow(stock_df)<=1){return(NULL)}
   stock_df_new<-cbind(stock_df,TR1=NA,PLUSDM1=NA,MINUSDM1=NA,TRn=NA,PLUSDMn=NA,MINUSDMn=NA,PLUSDIn=NA,MINUSDIn=NA,DXn=NA,ADXn=NA)
   # calculation
   # n_DX = 0 using all data (no ADX calculation)

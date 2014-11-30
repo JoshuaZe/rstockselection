@@ -8,7 +8,7 @@ source("StockSelectionProcess.R",encoding = "UTF-8")
 conn <- dbConnect(SQLite(), "F:/Stocks/STOCK20141115.db3")
 
 #dbListTables(conn)
-#head(stock_df<-dbReadTable(conn, "yahoo_603699_ss"))
+#head(stock_df<-dbReadTable(conn, "yahoo_601318_ss"))
 # 蜡烛图
 Candle <- function(xxx,n){
    xxx <- tail(xxx,n)
@@ -19,12 +19,12 @@ Candle <- function(xxx,n){
 # xxx <- dbReadTable(conn,"yahoo_600512_ss")
 # Candle(xxx,200)
 num<-10
-dayperiod <- 30
+dayperiod <- 10
 end <- "2012-12-31"
-evaluatorname <- "stockEvaluatedByTXS"
-sortername <- "stockSortedByTXSTOPSIS"
-stockSelectResult <- stockSelection(conn,num,dayperiod,end,
-                                    evaluatorname = evaluatorname, sortername = sortername)
+evaluatorname <- "stockEvaluatedByDMI"
+sortername <- "stockSortedByDMITOPSIS"
+system.time(stockSelectResult <- stockSelection(conn,num,dayperiod,end,
+                                    evaluatorname = evaluatorname, sortername = sortername))
 StockSelectedFileName<-paste("StockSelected",evaluatorname,sortername,sep = "-")
 write(stockSelectResult$stockSelected, StockSelectedFileName, sep = "\t")
 dbDisconnect(conn)

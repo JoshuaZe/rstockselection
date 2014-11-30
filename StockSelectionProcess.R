@@ -9,8 +9,9 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
   stockSelector$stockEvaluator<-switchStockEvaluator(evaluatorname)
   stockSelector$stockSorter<-switchStockSorter(sortername)
   # stock blacklist filter
-  stock_table_array<-dbListTables(conn)
-  stockSelector$blacklist<-NULL
+  #stock_table_array<-dbListTables(conn)
+  stock_table_array<-symbols
+  stockSelector$blacklist<-c("yahoo_601318_ss")
   stock_table_array<-stock_table_array[which(!(stock_table_array %in% stockSelector$blacklist))]
   # stock evaluation
   stock_evaluation_df<-NULL
