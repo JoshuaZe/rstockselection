@@ -8,7 +8,7 @@ source("StockSelectionProcess.R",encoding = "UTF-8")
 conn <- dbConnect(SQLite(), "F:/Stocks/STOCK20141115.db3")
 
 #dbListTables(conn)
-#head(stock_df<-dbReadTable(conn, "yahoo_601318_ss"))
+#head(stock_df<-dbReadTable(conn, "yahoo_601800_ss"))
 # 蜡烛图
 Candle <- function(xxx,n){
    xxx <- tail(xxx,n)
@@ -16,8 +16,8 @@ Candle <- function(xxx,n){
    candle <- ggplot(xxx)+geom_errorbar(aes(x=date,ymax=high,ymin=low))+geom_rect(aes(xmin=date-43000, xmax=date+43000, ymax=ifelse(open>=close, open, close), ymin=ifelse(open>close, close, open), fill=ifelse(open>close,"gray80","black")), colour="black")+scale_fill_identity()+ylab("price")
    candle
 }
-# xxx <- dbReadTable(conn,"yahoo_600512_ss")
-# Candle(xxx,200)
+# xxx <- dbReadTable(conn,"yahoo_601800_ss")
+# Candle(xxx,10)
 num<-10
 dayperiod <- 10
 end <- "2012-12-31"

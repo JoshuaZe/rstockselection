@@ -7,75 +7,67 @@
 #####
 # Evaluator
 stockEvaluatedByDMI<-function(stock_df){
-  # Filter stock data
-  stock_df<-stockDataFilter(stock_df)
-  if(nrow(stock_df)<=1){return(NULL)}
-  stock_df_new<-cbind(stock_df,TR1=NA,PLUSDM1=NA,MINUSDM1=NA,TRn=NA,PLUSDMn=NA,MINUSDMn=NA,PLUSDIn=NA,MINUSDIn=NA,DXn=NA,ADXn=NA)
   # calculation
-  # n_DX = 0 using all data (no ADX calculation)
   n_DX<-7
   n_ADX<-7
-  for(day in 2:nrow(stock_df_new)){
-    # True Range
-    stock_df_new$TR1[day]<-max(abs(stock_df_new$close[day]-stock_df_new$low[day]),
-                               abs(stock_df_new$high[day]-stock_df_new$close[day-1]),
-                               abs(stock_df_new$low[day]-stock_df_new$close[day-1]))
-    # Directional Movement
-    stock_df_new$PLUSDM1[day]<-if(stock_df_new$high[day]-stock_df_new$high[day-1]>0)
-                              {stock_df_new$high[day]-stock_df_new$high[day-1]}else{0}
-    stock_df_new$MINUSDM1[day]<-if(stock_df_new$low[day-1]-stock_df_new$low[day]>0)
-                              {stock_df_new$low[day-1]-stock_df_new$low[day]}else{0}
-    if(day>n_DX-1&n_DX!=0){
-      stock_df_new$TRn[day]<-sum(stock_df_new$TR1[max(day-n_DX,1):day],na.rm = TRUE)
-      stock_df_new$PLUSDMn[day]<-sum(stock_df_new$PLUSDM1[max(day-n_DX,1):day],na.rm = TRUE)
-      stock_df_new$MINUSDMn[day]<-sum(stock_df_new$MINUSDM1[max(day-n_DX,1):day],na.rm = TRUE)
-      stock_df_new$PLUSDIn[day]<-stock_df_new$PLUSDMn[day]/stock_df_new$TRn[day]*100
-      stock_df_new$MINUSDIn[day]<-stock_df_new$MINUSDMn[day]/stock_df_new$TRn[day]*100
-      stock_df_new$DXn[day]<-abs((stock_df_new$PLUSDIn[day]-stock_df_new$MINUSDIn[day]))/(stock_df_new$PLUSDIn[day]+stock_df_new$MINUSDIn[day])*100
-      if(length(which(!is.na(stock_df_new$DXn)))<=n_ADX){
-        stock_df_new$ADXn[day]<-mean(stock_df_new$DXn[max(day-n_ADX,1):day],na.rm = TRUE)
-      }else if(length(which(!is.na(stock_df_new$DXn)))>n_ADX){
-        stock_df_new$ADXn[day]<-(stock_df_new$ADXn[day-1]*(n_ADX-1)+stock_df_new$DXn[day])/n_ADX
-      }
-    }
-  }
-  if(nrow(stock_df_new)<n_DX|n_DX==0){
-    # True Range TOTAL
-    TRSUM<-sum(stock_df_new$TR1,na.rm = TRUE)
-    # Directional Movement TOTAL
-    PLUSDMSUM<-sum(stock_df_new$PLUSDM1,na.rm = TRUE)
-    MINUSDMSUM<-sum(stock_df_new$MINUSDM1,na.rm = TRUE)
-    # Directional Indicator
-    PLUSDI<-PLUSDMSUM/TRSUM*100
-    MINUSDI<-MINUSDMSUM/TRSUM*100
-    # DX - directional movement index
-    DX<-abs((PLUSDI-MINUSDI))/(PLUSDI+MINUSDI)*100
-    ADX<-DX
-  }else{
-    PLUSDI<-tail(stock_df_new$PLUSDIn,1)
-    MINUSDI<-tail(stock_df_new$MINUSDIn,1)
-    DX<-tail(stock_df_new$DXn,1)
-    ADX<-tail(stock_df_new$ADXn,1)
-  }
+  # Filter stock data
+  stock_df<-stockDataFilter_novol(stock_df)
+  if(nrow(stock_df)<=(n_DX+n_ADX)){return(NULL)}
+  stock_df_new<-cbind(stock_df,TR1=NA,PLUSDM1=NA,MINUSDM1=NA,TRn=NA,PLUSDMn=NA,MINUSDMn=NA,PLUSDIn=NA,MINUSDIn=NA,DXn=NA,ADXn=NA)
+  # True Range
+  stock_df_new$TR1<-pmax(abs(stock_df_new$close-stock_df_new$low),
+                         c(rep(NA,1),abs(stock_df_new$high[-1]-stock_df_new$close[-nrow(stock_df_new)])),
+                         c(rep(NA,1),abs(stock_df_new$low[-1]-stock_df_new$close[-nrow(stock_df_new)])))
+  # Directional Movement
+  stock_df_new$PLUSDM1 <- c(rep(NA,1),ifelse(stock_df_new$high[-1]-stock_df_new$high[-nrow(stock_df_new)]>0,
+                                             stock_df_new$high[-1]-stock_df_new$high[-nrow(stock_df_new)],0))
+  stock_df_new$MINUSDM1 <- c(rep(NA,1),ifelse(stock_df_new$low[-nrow(stock_df_new)]-stock_df_new$low[-1]>0,
+                                             stock_df_new$low[-nrow(stock_df_new)]-stock_df_new$low[-1],0))
+  # DX
+  stock_df_new$TRn <- c(rep(NA,n_DX-1),rollapply(stock_df_new$TR1,n_DX,na.rm = TRUE,sum))
+  stock_df_new$PLUSDMn <- c(rep(NA,n_DX-1),rollapply(stock_df_new$PLUSDM1,n_DX,na.rm = TRUE,sum))
+  stock_df_new$MINUSDMn <- c(rep(NA,n_DX-1),rollapply(stock_df_new$MINUSDM1,n_DX,na.rm = TRUE,sum))
+  stock_df_new$PLUSDIn<-stock_df_new$PLUSDMn/stock_df_new$TRn*100
+  stock_df_new$MINUSDIn<-stock_df_new$MINUSDMn/stock_df_new$TRn*100
+  stock_df_new$DXn<-ifelse((stock_df_new$PLUSDIn+stock_df_new$MINUSDIn)>0,
+                           abs((stock_df_new$PLUSDIn-stock_df_new$MINUSDIn))/(stock_df_new$PLUSDIn+stock_df_new$MINUSDIn)*100,0)
+  # ADX
+  stock_df_new$ADXn <- c(rep(NA,n_ADX-1),rollapply(stock_df_new$DXn,n_ADX,na.rm = TRUE,mean))
+  #
+#   ggplot() + 
+#     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = PLUSDIn),color = 'red') +
+#     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = MINUSDIn),color = 'green')+
+#     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = DXn),color = 'grey') + 
+#     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = ADXn),color = 'blue')
+#     
+  # prediction
+  n_predict<-10
+  stock_df_new<-tail(stock_df_new,n_predict)
+  #stockEvaluation
   stockEvaluation<-NULL
   stockEvaluation$symbol<-stock_df_new$symbol[1]
   #the Last Day +DI
-  stockEvaluation$PLUSDI<-PLUSDI
+  stockEvaluation$PLUSDI<-tail(stock_df_new$PLUSDIn,1)
   #The Last Day -DI
-  stockEvaluation$MINUSDI<-MINUSDI
+  stockEvaluation$MINUSDI<-tail(stock_df_new$MINUSDIn,1)
   #The Last Day DX
-  stockEvaluation$DX<-DX
+  stockEvaluation$DX<-tail(stock_df_new$DXn,1)
   #The Last Day ADX
-  stockEvaluation$ADX<-ADX
+  stockEvaluation$ADX<-tail(stock_df_new$ADXn,1)
+  # self-defined - 斜率
+  stockEvaluation$PLUSDIK <- lm(PLUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
+  stockEvaluation$MINUSDIK <- lm(MINUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
+  stockEvaluation$ADXK <- lm(ADXn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
+  stockEvaluation$DXPDICOR <- cor(stock_df_new$DXn,stock_df_new$PLUSDIn)
+  stockEvaluation$DXMDICOR <- cor(stock_df_new$DXn,stock_df_new$MINUSDIn)
   return(stockEvaluation)
 }
 # Sorter
 stockSortedByDMITOPSIS<-function(stock_evaluation_df){
-  stock_evaluation_df<-cbind(stock_evaluation_df,DXmADX=stock_evaluation_df$DX-stock_evaluation_df$ADX)
   # TOPSIS
-  decision<-as.matrix(stock_evaluation_df[,c("PLUSDI","MINUSDI","DXmADX")])
-  weight <- c(1, 1, 1)
-  impacts <- c("+", "-", "+")
+  decision<-as.matrix(stock_evaluation_df[,c("PLUSDI","MINUSDI","PLUSDIK","MINUSDIK","ADXK")])
+  weight <- c(1, 1, 1, 1, 1, 1)
+  impacts <- c("+", "-", "+", "-", "+")
   result<-topsis(decision, weight, impacts)
   # Sort
   stock_evaluation_df<-cbind(stock_evaluation_df,rank=result$rank)
@@ -203,11 +195,17 @@ runMaxSequence<-function(sequence){
   return(depth)
 }
 # stock data filtering
-stockDataFilter<-function(stock_df_withinperiod){
+stockDataFilter_beforenovol<-function(stock_df_withinperiod){
   # filtering data before no vol
   if(length(which(stock_df_withinperiod$vol==0))!=0){
     stock_df_withinperiod<-stock_df_withinperiod[max(which(stock_df_withinperiod$vol==0)):nrow(stock_df_withinperiod),]
   }
+  return(stock_df_withinperiod)
+}
+stockDataFilter_novol<-function(stock_df_withinperiod){
+  # filtering data no vol
+  stock_df_withinperiod$vol[which(stock_df_withinperiod$vol==0)]=NA
+  na.omit(stock_df_withinperiod)
   return(stock_df_withinperiod)
 }
 #####
