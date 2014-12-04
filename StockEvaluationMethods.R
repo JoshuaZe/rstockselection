@@ -66,7 +66,7 @@ stockEvaluatedByDMI<-function(stock_df){
 stockSortedByDMITOPSIS<-function(stock_evaluation_df){
   # TOPSIS
   decision<-as.matrix(stock_evaluation_df[,c("PLUSDI","MINUSDI","PLUSDIK","MINUSDIK","ADXK")])
-  weight <- c(1, 1, 1, 1, 1, 1)
+  weight <- c(1, 1, 1, 1, 1)
   impacts <- c("+", "-", "+", "-", "+")
   result<-topsis(decision, weight, impacts)
   # Sort
@@ -204,9 +204,8 @@ stockDataFilter_beforenovol<-function(stock_df_withinperiod){
 }
 stockDataFilter_novol<-function(stock_df_withinperiod){
   # filtering data no vol
-  stock_df_withinperiod$vol[which(stock_df_withinperiod$vol==0)]=NA
-  na.omit(stock_df_withinperiod)
-  return(stock_df_withinperiod)
+  stock_df_withinperiod$vol[which(stock_df_withinperiod$vol==0)] <- NA
+  return(na.omit(stock_df_withinperiod))
 }
 #####
 # switcher
