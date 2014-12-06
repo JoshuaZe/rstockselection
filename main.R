@@ -23,8 +23,9 @@ dayperiod <- 30
 end <- "2012-12-31"
 evaluatorname <- "stockEvaluatedByDMI"
 sortername <- "stockSortedByDMITOPSIS"
+parameters <- list(n_DX = 7,n_ADX = 7,n_PREDICT = 10,weight = c(1, 1, 1, 1, 1))
 system.time(stockSelectResult <- stockSelection(conn,num,dayperiod,end,
-                                    evaluatorname = evaluatorname, sortername = sortername))
+                                    evaluatorname = evaluatorname, sortername = sortername,parameters))
 StockSelectedFileName<-paste("StockSelected",evaluatorname,sortername,sep = "-")
 write(stockSelectResult$stockSelected, StockSelectedFileName, sep = "\t")
 dbDisconnect(conn)

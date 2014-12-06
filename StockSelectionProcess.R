@@ -1,5 +1,5 @@
 source("StockEvaluationMethods.R",encoding = "UTF-8")
-stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sortername){
+stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sortername,parameters){
   stockSelector<-NULL
   # parameter setting
   stockSelector$num<-num
@@ -26,7 +26,7 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
     # stock Price Adjust
     stock_df_withinperiod<-stockPriceAdjust(stock_df_withinperiod)
     # stock evaluator
-    stock_evaluation_list<-stockSelector$stockEvaluator(stock_df_withinperiod)
+    stock_evaluation_list<-stockSelector$stockEvaluator(stock_df_withinperiod,parameters)
     if(is.null(stock_evaluation_list)){next}
     stock_evaluation_df<-rbind(stock_evaluation_df,as.data.frame(stock_evaluation_list,stringsAsFactors = F))
   }
@@ -36,7 +36,7 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
     return(stockSelector)
   }
   # stock sorterstock Order By Evaluation Preference
-  stockSelector$stock_evaluation_df_sorted<-stockSelector$stockSorter(stock_evaluation_df)
+  stockSelector$stock_evaluation_df_sorted<-stockSelector$stockSorter(stock_evaluation_df,parameters)
   # stock Top Num Selected
   stockSelector$stockSelected<-head(stockSelector$stock_evaluation_df_sorted$symbol,num)
   return(stockSelector)

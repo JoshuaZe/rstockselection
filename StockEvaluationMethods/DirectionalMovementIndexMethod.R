@@ -1,15 +1,17 @@
 #####
 # Evaluator:stockEvaluatedByDMI
+# paraList <- list(n_DX=7,n_ADX=7,n_PREDICT=10)
 # Special Sorter-Preference Order: stockSortedByDMITOPSIS
 # suggest n_DX = 7
 # suggest n_ADX = 7
 # suggest dayperiod = 14
 #####
 # Evaluator
-stockEvaluatedByDMI<-function(stock_df){
-  # calculation
-  n_DX<-7
-  n_ADX<-7
+stockEvaluatedByDMI<-function(stock_df,parameters){
+  # calculation of paraList
+  n_DX<-parameters$n_DX
+  n_ADX<-parameters$n_ADX
+  n_predict<-parameters$n_PREDICT
   # Filter stock data
   stock_df<-stockDataFilter_novol(stock_df)
   if(nrow(stock_df)<=(n_DX+n_ADX)){return(NULL)}
@@ -19,10 +21,8 @@ stockEvaluatedByDMI<-function(stock_df){
                          c(rep(NA,1),abs(stock_df_new$high[-1]-stock_df_new$close[-nrow(stock_df_new)])),
                          c(rep(NA,1),abs(stock_df_new$low[-1]-stock_df_new$close[-nrow(stock_df_new)])))
   # Directional Movement
-  stock_df_new$PLUSDM1 <- c(rep(NA,1),ifelse(stock_df_new$high[-1]-stock_df_new$high[-nrow(stock_df_new)]>0,
-                                             stock_df_new$high[-1]-stock_df_new$high[-nrow(stock_df_new)],0))
-  stock_df_new$MINUSDM1 <- c(rep(NA,1),ifelse(stock_df_new$low[-nrow(stock_df_new)]-stock_df_new$low[-1]>0,
-                                              stock_df_new$low[-nrow(stock_df_new)]-stock_df_new$low[-1],0))
+  stock_df_new$PLUSDM1 <- c(rep(NA,1),ifelse(diff(stock_df_new$high,1)>0,diff(stock_df_new$high,1),0))
+  stock_df_new$MINUSDM1 <- c(rep(NA,1),ifelse(-diff(stock_df_new$low)>0,-diff(stock_df_new$low),0))
   # DX
   stock_df_new$TRn <- c(rep(NA,n_DX-1),rollapply(stock_df_new$TR1,n_DX,na.rm = TRUE,sum))
   stock_df_new$PLUSDMn <- c(rep(NA,n_DX-1),rollapply(stock_df_new$PLUSDM1,n_DX,na.rm = TRUE,sum))
@@ -34,14 +34,13 @@ stockEvaluatedByDMI<-function(stock_df){
   # ADX
   stock_df_new$ADXn <- c(rep(NA,n_ADX-1),rollapply(stock_df_new$DXn,n_ADX,na.rm = TRUE,mean))
   #
-  #   ggplot() + 
-  #     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = PLUSDIn),color = 'red') +
-  #     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = MINUSDIn),color = 'green')+
-  #     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = DXn),color = 'grey') + 
-  #     geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = ADXn),color = 'blue')
-  #     
+#      ggplot() + 
+#        geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = PLUSDIn),color = 'red') +
+#        geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = MINUSDIn),color = 'green')+
+#        geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = DXn),color = 'grey') + 
+#        geom_line(data = tail(stock_df_new,20),aes(x = ymd(date),y = ADXn),color = 'blue')
+# 
   # prediction
-  n_predict<-10
   stock_df_new<-tail(stock_df_new,n_predict)
   #stockEvaluation
   stockEvaluation<-NULL
@@ -58,15 +57,14 @@ stockEvaluatedByDMI<-function(stock_df){
   stockEvaluation$PLUSDIK <- lm(PLUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
   stockEvaluation$MINUSDIK <- lm(MINUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
   stockEvaluation$ADXK <- lm(ADXn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
-  #stockEvaluation$DXPDICOR <- cor(stock_df_new$DXn,stock_df_new$PLUSDIn)
-  #stockEvaluation$DXMDICOR <- cor(stock_df_new$DXn,stock_df_new$MINUSDIn)
   return(stockEvaluation)
 }
 # Sorter
-stockSortedByDMITOPSIS<-function(stock_evaluation_df){
+# paraList <- list(weight=c(1, 1, 1, 1, 1))
+stockSortedByDMITOPSIS<-function(stock_evaluation_df,parameters){
   # TOPSIS
   decision<-as.matrix(stock_evaluation_df[,c("PLUSDI","MINUSDI","PLUSDIK","MINUSDIK","ADXK")])
-  weight <- c(1, 1, 1, 1, 1)
+  weight <- parameters$weight
   impacts <- c("+", "-", "+", "-", "+")
   result<-topsis(decision, weight, impacts)
   # Sort
