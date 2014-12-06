@@ -6,7 +6,6 @@ require(zoo)
 require(lubridate)
 source("StockSelectionProcess.R",encoding = "UTF-8")
 conn <- dbConnect(SQLite(), "F:/Stocks/STOCK20141115.db3")
-
 #dbListTables(conn)
 #head(stock_df<-dbReadTable(conn, "yahoo_601800_ss"))
 # 蜡烛图
