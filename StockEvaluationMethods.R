@@ -58,8 +58,8 @@ stockEvaluatedByDMI<-function(stock_df){
   stockEvaluation$PLUSDIK <- lm(PLUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
   stockEvaluation$MINUSDIK <- lm(MINUSDIn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
   stockEvaluation$ADXK <- lm(ADXn~c(1:nrow(stock_df_new)),data=stock_df_new)$coefficients[2]
-  stockEvaluation$DXPDICOR <- cor(stock_df_new$DXn,stock_df_new$PLUSDIn)
-  stockEvaluation$DXMDICOR <- cor(stock_df_new$DXn,stock_df_new$MINUSDIn)
+  #stockEvaluation$DXPDICOR <- cor(stock_df_new$DXn,stock_df_new$PLUSDIn)
+  #stockEvaluation$DXMDICOR <- cor(stock_df_new$DXn,stock_df_new$MINUSDIn)
   return(stockEvaluation)
 }
 # Sorter
