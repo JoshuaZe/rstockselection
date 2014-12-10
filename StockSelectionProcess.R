@@ -12,7 +12,7 @@ stockSelection <- function(conn,num,dayperiod,end = Sys.Date(),evaluatorname,sor
   stock_table_array<-dbListTables(conn)
   stock_table_array<-symbols
   stockSelector$blacklist<-c("yahoo_601318_ss")
-  stock_table_array<-stock_table_array[which(!(stock_table_array %in% stockSelector$blacklist))]
+  stock_table_array<-setdiff(stock_table_array,stockSelector$blacklist)
   # stock evaluation
   stock_evaluation_df<-NULL
   print(system.time(
